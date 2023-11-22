@@ -110,8 +110,7 @@ export class Component {
     }
   }
 
-  toHTML(): string | null {
-    const html = toHTMLFunction(this);
-    return html ? html.outerHTML : null;
+  toHTML(): string {
+    return toHTMLFunction(this).outerHTML;
   }
 }

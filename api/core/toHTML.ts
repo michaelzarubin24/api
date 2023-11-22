@@ -1,39 +1,47 @@
 import { Component } from "./component";
 
-export const toHTMLFunction = (instance: Component): HTMLElement => {
-  if (instance instanceof Component) {
-    const { tagName, className, children, html, textContent, events, attrs } =
-      instance;
-    const element = document.createElement(tagName);
+export const toHTMLFunction = (instance: Component): HTMLElement | null => {
+  const {
+    getTagName,
+    getClassName,
+    getChildren,
+    getHtml,
+    getTextContent,
+    getEvents,
+    getAttributes,
+  } = instance;
 
-    if (className) {
-      element.className = className;
-    }
-    if (textContent) {
-      element.textContent = textContent;
-    }
-    if (events) {
-      for (let key in events) {
-        element.addEventListener(key, events[key]);
-      }
-    }
+  const element = document.createElement(getTagName());
 
-    if (!children) return element;
-
-    if (html) element.insertAdjacentHTML("afterbegin", html);
-
-    if (attrs) {
-      for (const attr in attrs) {
-        element.setAttribute(attr, attrs[attr]);
-      }
-    }
-    const childrenArray = Array.isArray(children) ? children : [children];
-    for (const child of childrenArray) {
-      if (child instanceof Component) element.append(child.toHTML());
-    }
-
-    return element;
+  if (getClassName()) {
+    element.className = getClassName()!;
+  }
+  if (getTextContent()) {
+    element.textContent = getTextContent()!;
+  }
+  if (getEvents()) {
+    Object.entries(getEvents()!).forEach(([key, listener]) => {
+      element.addEventListener(key, listener);
+    });
   }
 
-  return null;
+  if (getHtml()) element.insertAdjacentHTML("afterbegin", getHtml()!);
+
+  if (getAttributes()) {
+    for (const attr in getAttributes()!) {
+      element.setAttribute(attr, getAttributes()![attr]);
+    }
+  }
+
+  const childrenArray = getChildren();
+  if (childrenArray) {
+    for (const child of childrenArray) {
+      const childElement = child instanceof Component ? child.toHTML() : null;
+      if (childElement) {
+        element.appendChild(childElement);
+      }
+    }
+  }
+
+  return element;
 };
